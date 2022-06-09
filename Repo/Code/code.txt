@@ -1,0 +1,45 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var SRTM_DEM = ee.Image("USGS/SRTMGL1_003"),
+    Study_Area = ee.FeatureCollection("users/2018rsce002/Godavari"),
+    Watershed_details = ee.FeatureCollection("WWF/HydroSHEDS/v1/Basins/hybas_4"),
+    River_Network = ee.FeatureCollection("WWF/HydroSHEDS/v1/FreeFlowingRivers");
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+// //1.1) Watershed identification and marking
+// //------------------
+Map.addLayer(Study_Area,{}, 'Godavari_shapefile');
+var watershed = SRTM_DEM
+              .clip(Study_Area);
+Map.addLayer(watershed,{}, 'Godavari_Waterhsed');
+//1.2) Exporting layers to drive
+Export.image.toDrive({
+  image: watershed,
+  description: 'Godavari_DEM',
+  region: Study_Area,
+  scale: 30,
+  maxPixels: 1e13
+  });
+var river = ee.FeatureCollection("WWF/HydroSHEDS/v1/FreeFlowingRivers")
+            .filterBounds(Study_Area)
+Map.addLayer(river, {}, 'coloured');
+var subbasin = ee.FeatureCollection("WWF/HydroSHEDS/v1/Basins/hybas_6")
+              .filterBounds(Study_Area)
+Map.addLayer(subbasin, {}, 'red')
+Export.table.toDrive(river,"Godavari_river","shp");
+dataset = dataset.style({
+  color: "B2B2B3",
+  width: 1.0,
+});
+
+Map.setCenter(83.20,23.45, 12);
+
+Map.addLayer(dataset, {}, "Basins");
+Export.image.toDrive({
+  image: dataset,
+  description: 'Sub-Basin_Details_new',
+  region: Study_Area,
+  scale: 30,
+  maxPixels: 1e13
+  });
